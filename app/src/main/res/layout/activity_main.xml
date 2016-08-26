@@ -14,7 +14,6 @@
         android:layout_height="wrap_content"
         android:text="Играть"
         android:id="@+id/new_game"
-        android:layout_alignParentTop="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="79dp" />
+        android:layout_centerVertical="true"
+        android:layout_centerHorizontal="true" />
 </RelativeLayout>

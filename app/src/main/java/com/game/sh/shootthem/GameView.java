@@ -17,45 +17,59 @@ import android.view.SurfaceView;
  */
 public class GameView extends SurfaceView {
 
+    /**Объект класса GameLoopThread*/
     private GameThread mThread;
 
     public int shotX;
     public int shotY;
 
+    private Player player;
+
+    Bitmap players;
+
+    /**Переменная запускающая поток рисования*/
     private boolean running = false;
-    private Paint paint;
 
+    //-------------Start of GameThread--------------------------------------------------\\
 
+    public class GameThread extends Thread
+    {
+        /**Объект класса*/
+        private GameView view;
 
-    public class GameThread extends Thread{
-        //Объект класса
-        private  GameView view;
-
-        //Конструктор класса
-        public GameThread(GameView view){
+        /**Конструктор класса*/
+        public GameThread(GameView view)
+        {
             this.view = view;
         }
 
-        //Задание состояния потока
-        public void setRunning(boolean run){
+        /**Задание состояния потока*/
+        public void setRunning(boolean run)
+        {
             running = run;
         }
 
-        //Действия, выполняемые в потоке
-        public void run(){
-            while(running){
+        /** Действия, выполняемые в потоке */
+        public void run()
+        {
+            while (running)
+            {
                 Canvas canvas = null;
-                try{
-                    //Подготовка канваса
+                try
+                {
+                    // подготовка Canvas-а
                     canvas = view.getHolder().lockCanvas();
-                    synchronized (view.getHandler()){
-                        //рисование
+                    synchronized (view.getHolder())
+                    {
+                        // собственно рисование
                         onDraw(canvas);
                     }
                 }
-                catch (Exception e){}
-                finally {
-                    if(canvas != null){
+                catch (Exception e) { }
+                finally
+                {
+                    if (canvas != null)
+                    {
                         view.getHolder().unlockCanvasAndPost(canvas);
                     }
                 }
@@ -63,47 +77,58 @@ public class GameView extends SurfaceView {
         }
     }
 
-    public GameView(Context context) {
+    //-------------End of GameThread--------------------------------------------------\\
+
+    public GameView(Context context)
+    {
         super(context);
 
         mThread = new GameThread(this);
 
-        getHolder().addCallback(new SurfaceHolder.Callback(){
+        players= BitmapFactory.decodeResource(getResources(), R.mipmap.unit);
+        player= new Player(this, players);
 
-            @Override
-            public void surfaceCreated(SurfaceHolder holder) {
+        /*Рисуем все наши объекты и все все все*/
+        getHolder().addCallback(new SurfaceHolder.Callback()
+        {
+            /*** Уничтожение области рисования */
+            public void surfaceDestroyed(SurfaceHolder holder)
+            {
+                boolean retry = true;
+                mThread.setRunning(false);
+                while (retry)
+                {
+                    try
+                    {
+                        // ожидание завершение потока
+                        mThread.join();
+                        retry = false;
+                    }
+                    catch (InterruptedException e) { }
+                }
+            }
+
+            /** Создание области рисования */
+            public void surfaceCreated(SurfaceHolder holder)
+            {
                 mThread.setRunning(true);
                 mThread.start();
             }
 
-            @Override
-            public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-
-            }
-
-            @Override
-            public void surfaceDestroyed(SurfaceHolder holder) {
-                boolean retry = true;
-                mThread.setRunning(false);
-                while(retry){
-                    try{
-                        //ожиданиие завершения потока
-                        mThread.join();
-                        retry = false;
-                    }
-                    catch (InterruptedException e){}
-                }
+            /** Изменение области рисования */
+            public void surfaceChanged(SurfaceHolder holder, int format, int width, int height)
+            {
             }
         });
-
     }
 
+    /**Функция рисующая все спрайты и фон*/
+    protected void onDraw(Canvas canvas) {
+        canvas.drawColor(Color.WHITE);
 
-    protected void onDraw(Canvas canvas){
-        Bitmap backgr = BitmapFactory.decodeResource(getResources(), R.drawable.background_field);
-        canvas.drawBitmap(backgr, 0, 0, paint);
-
+        canvas.drawBitmap(players, 25, 150, null);
     }
+
 
 
 }
