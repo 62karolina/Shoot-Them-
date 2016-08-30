@@ -9,8 +9,13 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
+import android.view.MotionEvent;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * Created by Каролина on 26.07.2016.
@@ -22,6 +27,8 @@ public class GameView extends SurfaceView {
 
     public int shotX;
     public int shotY;
+
+    private List<Bullet> ball = new ArrayList<Bullet>();
 
     private Player player;
 
@@ -126,7 +133,33 @@ public class GameView extends SurfaceView {
     protected void onDraw(Canvas canvas) {
         canvas.drawColor(Color.WHITE);
 
+        Iterator<Bullet> j = ball.iterator();
+        while(j.hasNext()) {
+            Bullet b = j.next();
+            if(b.x >= 1000 || b.x <= 1000) {
+                b.onDraw(canvas);
+            } else {
+                j.remove();
+            }
+        }
+
         canvas.drawBitmap(players, 25, 150, null);
+    }
+
+    public Bullet createSprite(int resouce) {
+        Bitmap bmp = BitmapFactory.decodeResource(getResources(), resouce);
+        return new Bullet(this, bmp);
+    }
+
+    public boolean onTouchEvent(MotionEvent e)
+    {
+        shotX = (int) e.getX();
+        shotY = (int) e.getY();
+
+        if(e.getAction() == MotionEvent.ACTION_DOWN)
+            ball.add(createSprite(R.drawable.bullet));
+
+        return true;
     }
 
 
