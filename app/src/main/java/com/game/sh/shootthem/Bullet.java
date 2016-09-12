@@ -33,10 +33,10 @@ public class Bullet {
         this.gameView = gameView;
         this.bmp = bmp;
 
-        this.x = 0;            //позиция по Х
-        this.y = 120;          //позиция по У
-        this.width = 27;       //ширина снаряда
-        this.height = 40;      //высота снаряда
+        this.x = 70;            //позиция по Х
+        this.y = 180;          //позиция по У
+        this.width = 10;       //ширина снаряда
+        this.height = 20;      //высота снаряда
 
         //угол полета пули в зависипости от координаты косания к экрану
         angle = Math.atan((double)(y - gameView.shotY) / (x - gameView.shotX));

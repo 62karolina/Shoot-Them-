@@ -16,11 +16,12 @@ import android.view.SurfaceView;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Random;
 
 /**
  * Created by Каролина on 26.07.2016.
  */
-public class GameView extends SurfaceView {
+public class GameView extends SurfaceView implements Runnable{
 
     /**Объект класса GameLoopThread*/
     private GameThread mThread;
@@ -30,12 +31,32 @@ public class GameView extends SurfaceView {
 
     private List<Bullet> ball = new ArrayList<Bullet>();
 
+    private List<Enemy> enemy = new ArrayList<Enemy>();
+
+    Bitmap enemies;
+
+    private Thread thred = new Thread(this);
+
     private Player player;
 
     Bitmap players;
 
     /**Переменная запускающая поток рисования*/
     private boolean running = false;
+
+    @Override
+    public void run() {
+        Random rnd = new Random();
+        try {
+            Thread.sleep(rnd.nextInt(200));
+            enemy.add(new Enemy(this, enemies));
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+
+        }
+
+
+    }
 
     //-------------Start of GameThread--------------------------------------------------\\
 
@@ -70,6 +91,7 @@ public class GameView extends SurfaceView {
                     {
                         // собственно рисование
                         onDraw(canvas);
+                        testCollision();
                     }
                 }
                 catch (Exception e) { }
@@ -81,6 +103,7 @@ public class GameView extends SurfaceView {
                     }
                 }
             }
+
         }
     }
 
@@ -94,6 +117,8 @@ public class GameView extends SurfaceView {
 
         players= BitmapFactory.decodeResource(getResources(), R.mipmap.unit);
         player= new Player(this, players);
+
+
 
         /*Рисуем все наши объекты и все все все*/
         getHolder().addCallback(new SurfaceHolder.Callback()
@@ -125,8 +150,11 @@ public class GameView extends SurfaceView {
             /** Изменение области рисования */
             public void surfaceChanged(SurfaceHolder holder, int format, int width, int height)
             {
+
             }
         });
+        enemies = BitmapFactory.decodeResource(getResources(), R.mipmap.unit_enemy);
+        enemy.add(new Enemy(this, enemies));
     }
 
     /**Функция рисующая все спрайты и фон*/
@@ -144,6 +172,16 @@ public class GameView extends SurfaceView {
         }
 
         canvas.drawBitmap(players, 25, 150, null);
+
+        Iterator<Enemy> i = enemy.iterator();
+        while(i.hasNext()) {
+            Enemy e = i.next();
+            if(e.x >= 1000 || e.x <= 1000) {
+                e.onDraw(canvas);
+            } else {
+                i.remove();
+            }
+        }
     }
 
     public Bullet createSprite(int resouce) {
@@ -157,11 +195,26 @@ public class GameView extends SurfaceView {
         shotY = (int) e.getY();
 
         if(e.getAction() == MotionEvent.ACTION_DOWN)
-            ball.add(createSprite(R.drawable.bullet));
+            ball.add(createSprite(R.mipmap.bullet));
 
         return true;
     }
 
+    private void testCollision() {
+        Iterator<Bullet> b = ball.iterator();
+        while(b.hasNext()) {
+            Bullet balls = b.next();
+            Iterator<Enemy> i = enemy.iterator();
+            while(i.hasNext()) {
+                Enemy enemies = i.next();
 
+                if ((Math.abs(balls.x - enemies.x) <= (balls.width + enemies.width) / 2f)
+                        && (Math.abs(balls.y - enemies.y) <= (balls.height + enemies.height) / 2f)) {
+                    i.remove();
+                    b.remove();
+                }
+            }
+        }
+    }
 
 }
